@@ -1,0 +1,107 @@
+module Identicon where
+{-|
+-}
+
+
+import Color exposing (..)
+import Graphics.Collage exposing (..)
+import Array
+import Maybe
+import Bitwise
+
+patch0 = Array.fromList [0, 4, 24, 20]
+patch1 = Array.fromList [0, 4, 20]
+patch2 = Array.fromList [2, 24, 20]
+patch3 = Array.fromList [0, 2,  20, 22]
+patch4 = Array.fromList [2, 14, 22, 10]
+patch5 = Array.fromList [0, 14, 24, 22]
+patch6 = Array.fromList [2, 24, 22, 13, 11, 22, 20]
+patch7 = Array.fromList [0, 14, 22]
+patch8 = Array.fromList [6, 8, 18, 16]
+patch9 = Array.fromList [4, 20, 10, 12, 2]
+patch10 = Array.fromList [0, 2, 12, 10]
+patch11 = Array.fromList [10, 14, 22]
+patch12 = Array.fromList [20, 12, 24]
+patch13 = Array.fromList [10, 2, 12]
+patch14 = Array.fromList [0, 2, 10]
+
+patchTypes = Array.fromList [patch0, patch1, patch2, patch3, patch4, patch5, patch6, patch7, patch8, patch9, patch10, patch11, patch12, patch13, patch14, patch0]
+
+centerPatchTypes = Array.fromList [0, 4, 8, 15]
+
+renderIdenticonPatch : Float -> Float -> Float -> Int -> Int -> Bool -> Color -> Color -> List Graphics.Collage.Form
+renderIdenticonPatch x y size patch turn invert foreColor backColor =
+  let y' = 1.0 * y
+      patch' = patch % (Array.length patchTypes)
+      turn' = turn % 4
+      invert' = if patch' == 15 then not invert else invert
+      offset = size / 2
+      scale = size / 4
+      patchType = Maybe.withDefault (Array.fromList []) (patchTypes |> Array.get patch')
+      vertices =
+        (patchType
+           |> Array.map (\p -> (toFloat((round p) % 5) * scale - offset, toFloat (floor (p / 5)) * scale - offset)))
+          |> Array.toList
+
+      bgColor = if invert' then foreColor else backColor
+      fgColor = if invert' then backColor else foreColor
+  in
+    [
+     -- background
+     (rect size size)
+       |> filled bgColor
+       |> move (x, y'),
+     -- build patch path
+     (polygon vertices)
+       |> filled fgColor
+       |> rotate (toFloat turn' * pi / 2)
+       |> move (x, y')
+    ]
+
+renderIdenticon : Int -> Int -> List Graphics.Collage.Form
+renderIdenticon code size =
+  let patchSize = (toFloat size) / 3
+      middleType = Maybe.withDefault 0 (centerPatchTypes |> Array.get (Bitwise.and code 3))
+      middleInvert = (Bitwise.and (Bitwise.shiftRight code 2) 1) /= 0
+      cornerType = (Bitwise.and (Bitwise.shiftRight code 3) 15)
+      cornerInvert = (Bitwise.and (Bitwise.shiftRight code 7) 1) /= 0
+      cornerTurn = (Bitwise.and (Bitwise.shiftRight code 8) 3)
+      sideType = (Bitwise.and (Bitwise.shiftRight code 10) 15)
+      sideInvert = (Bitwise.and (Bitwise.shiftRight code 14) 1) /= 0
+      sideTurn = (Bitwise.and (Bitwise.shiftRight code 15) 3)
+      blue = (Bitwise.and (Bitwise.shiftRight code 16) 31)
+      green = (Bitwise.and (Bitwise.shiftRight code 21) 31)
+      red = (Bitwise.and (Bitwise.shiftRight code 27) 31)
+      foreColor = rgba (Bitwise.shiftLeft red 3) (Bitwise.shiftLeft green 3) (Bitwise.shiftLeft blue 3) 1.0
+      backColor = rgba 0xff 0xff 0xff 1.0
+  in
+    List.concat [
+           -- middle patch
+           renderIdenticonPatch patchSize patchSize patchSize middleType 0 middleInvert foreColor backColor,
+
+           -- side patches, starting from top and moving clock-wise
+           renderIdenticonPatch patchSize 0 patchSize sideType (sideTurn + 0) sideInvert foreColor backColor,
+           renderIdenticonPatch (patchSize*2) patchSize patchSize sideType (sideTurn + 1) sideInvert foreColor backColor,
+           renderIdenticonPatch patchSize (patchSize*2) patchSize sideType (sideTurn + 2) sideInvert foreColor backColor,
+           renderIdenticonPatch 0 patchSize patchSize sideType (sideTurn + 3) sideInvert foreColor backColor,
+           -- corner paths, starting from top left and moving clock-wise
+           renderIdenticonPatch 0 0 patchSize cornerType (cornerTurn + 0) cornerInvert foreColor backColor,
+           renderIdenticonPatch (patchSize*2) 0 patchSize cornerType (cornerTurn + 1) cornerInvert foreColor backColor,
+           renderIdenticonPatch (patchSize*2) (patchSize*2) patchSize cornerType (cornerTurn + 2) cornerInvert foreColor backColor,
+           renderIdenticonPatch 0 (patchSize*2) patchSize cornerType (cornerTurn + 3) cornerInvert foreColor backColor
+          ]
+      |> List.map (\f -> f |> move (-patchSize, -patchSize))
+
+renderGuide : Float -> Float -> List Graphics.Collage.Form
+renderGuide width height = 
+  let bgColor = rgba 0x00 0xb4 0xf5 1.0
+      lineColor = rgba 0x00 0x00 0x00 1.0
+  in
+    [(rect width height)
+       |> filled bgColor,
+     (rect width 1.0)
+       |> filled lineColor,
+     (rect 1.0 height)
+       |> filled lineColor
+    ]
+
