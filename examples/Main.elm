@@ -8,7 +8,7 @@ width = 400
 height = 400
 
 main : Element
-main = collage width height (List.concat [
-                                    (renderGuide width height),
-                                    (renderIdenticon code size)
-                              ])
+main = collage width height [
+        renderGuide width height,
+        renderIdenticon code size
+       ]

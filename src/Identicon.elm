@@ -58,7 +58,7 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
        |> move (x, y')
     ]
 
-renderIdenticon : Int -> Int -> List Graphics.Collage.Form
+renderIdenticon : Int -> Int -> Graphics.Collage.Form
 renderIdenticon code size =
   let patchSize = (toFloat size) / 3
       middleType = Maybe.withDefault 0 (centerPatchTypes |> Array.get (Bitwise.and code 3))
@@ -91,8 +91,9 @@ renderIdenticon code size =
            renderIdenticonPatch 0 (patchSize*2) patchSize cornerType (cornerTurn + 3) cornerInvert foreColor backColor
           ]
       |> List.map (\f -> f |> move (-patchSize, -patchSize))
+      |> Graphics.Collage.group
 
-renderGuide : Float -> Float -> List Graphics.Collage.Form
+renderGuide : Float -> Float -> Graphics.Collage.Form
 renderGuide width height = 
   let bgColor = rgba 0x00 0xb4 0xf5 1.0
       lineColor = rgba 0x00 0x00 0x00 1.0
@@ -103,5 +104,5 @@ renderGuide width height =
        |> filled lineColor,
      (rect 1.0 height)
        |> filled lineColor
-    ]
+    ] |> Graphics.Collage.group
 
