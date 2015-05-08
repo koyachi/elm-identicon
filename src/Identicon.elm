@@ -3,8 +3,8 @@ module Identicon where
 -}
 
 
-import Color exposing (..)
-import Graphics.Collage exposing (..)
+import Color
+import Graphics.Collage as C
 import Array
 import Maybe
 import Bitwise
@@ -29,10 +29,9 @@ patchTypes = Array.fromList [patch0, patch1, patch2, patch3, patch4, patch5, pat
 
 centerPatchTypes = Array.fromList [0, 4, 8, 15]
 
-renderIdenticonPatch : Float -> Float -> Float -> Int -> Int -> Bool -> Color -> Color -> List Graphics.Collage.Form
+renderIdenticonPatch : Float -> Float -> Float -> Int -> Int -> Bool -> Color.Color -> Color.Color -> List C.Form
 renderIdenticonPatch x y size patch turn invert foreColor backColor =
-  let y' = 1.0 * y
-      patch' = patch % (Array.length patchTypes)
+  let patch' = patch % (Array.length patchTypes)
       turn' = turn % 4
       invert' = if patch' == 15 then not invert else invert
       offset = size / 2
@@ -49,19 +48,19 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
   in
     [
      -- background
-     (rect size size)
-       |> filled bgColor
-       |> move (x, y')
+     C.rect size size
+       |> C.filled bgColor
+       |> C.move (x, y)
        |> flipVertically,
      -- build patch path
-     (polygon vertices)
-       |> filled fgColor
-       |> rotate (toFloat turn' * pi / 2 * flipSign)
-       |> move (x, y')
+     C.polygon vertices
+       |> C.filled fgColor
+       |> C.rotate (toFloat turn' * pi / 2 * flipSign)
+       |> C.move (x, y)
        |> flipVertically
     ]
 
-renderIdenticon : Int -> Int -> Graphics.Collage.Form
+renderIdenticon : Int -> Int -> C.Form
 renderIdenticon code size =
   let patchSize = (toFloat size) / 3
       middleType = Maybe.withDefault 0 (centerPatchTypes |> Array.get (Bitwise.and code 3))
@@ -75,8 +74,8 @@ renderIdenticon code size =
       blue = (Bitwise.and (Bitwise.shiftRight code 16) 31)
       green = (Bitwise.and (Bitwise.shiftRight code 21) 31)
       red = (Bitwise.and (Bitwise.shiftRight code 27) 31)
-      foreColor = rgba (Bitwise.shiftLeft red 3) (Bitwise.shiftLeft green 3) (Bitwise.shiftLeft blue 3) 1.0
-      backColor = rgba 0xff 0xff 0xff 1.0
+      foreColor = Color.rgba (Bitwise.shiftLeft red 3) (Bitwise.shiftLeft green 3) (Bitwise.shiftLeft blue 3) 1.0
+      backColor = Color.rgba 0xff 0xff 0xff 1.0
   in
     List.concat [
            -- middle patch
@@ -94,22 +93,22 @@ renderIdenticon code size =
            renderIdenticonPatch 0 (patchSize*2) patchSize cornerType (cornerTurn + 3) cornerInvert foreColor backColor
           ]
       -- centering vertically fliped forms
-      |> List.map (\f -> f |> move (-patchSize, patchSize))
-      |> Graphics.Collage.group
+      |> List.map (\f -> f |> C.move (-patchSize, patchSize))
+      |> C.group
 
-renderGuide : Float -> Float -> Graphics.Collage.Form
+renderGuide : Float -> Float -> C.Form
 renderGuide width height = 
-  let bgColor = rgba 0x00 0xb4 0xf5 1.0
-      lineColor = rgba 0x00 0x00 0x00 1.0
+  let bgColor = Color.rgba 0x00 0xb4 0xf5 1.0
+      lineColor = Color.rgba 0x00 0x00 0x00 1.0
   in
-    [(rect width height)
-       |> filled bgColor,
-     (rect width 1.0)
-       |> filled lineColor,
-     (rect 1.0 height)
-       |> filled lineColor
-    ] |> Graphics.Collage.group
+    [C.rect width height
+       |> C.filled bgColor,
+     C.rect width 1.0
+       |> C.filled lineColor,
+     C.rect 1.0 height
+       |> C.filled lineColor
+    ] |> C.group
 
-flipVertically : Form -> Form
+flipVertically : C.Form -> C.Form
 flipVertically f =
   { f | y <- -f.y }
