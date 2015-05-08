@@ -38,9 +38,10 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
       offset = size / 2
       scale = size / 4
       patchType = Maybe.withDefault (Array.fromList []) (patchTypes |> Array.get patch')
+      flipSign = -1.0
       vertices =
         (patchType
-           |> Array.map (\p -> (toFloat((round p) % 5) * scale - offset, toFloat (floor (p / 5)) * scale - offset)))
+           |> Array.map (\p -> (toFloat((round p) % 5) * scale - offset, (toFloat (floor (p / 5)) * scale - offset) * flipSign)))
           |> Array.toList
 
       bgColor = if invert' then foreColor else backColor
@@ -50,12 +51,14 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
      -- background
      (rect size size)
        |> filled bgColor
-       |> move (x, y'),
+       |> move (x, y')
+       |> flipVertically,
      -- build patch path
      (polygon vertices)
        |> filled fgColor
-       |> rotate (toFloat turn' * pi / 2)
+       |> rotate (toFloat turn' * pi / 2 * flipSign)
        |> move (x, y')
+       |> flipVertically
     ]
 
 renderIdenticon : Int -> Int -> Graphics.Collage.Form
@@ -90,7 +93,8 @@ renderIdenticon code size =
            renderIdenticonPatch (patchSize*2) (patchSize*2) patchSize cornerType (cornerTurn + 2) cornerInvert foreColor backColor,
            renderIdenticonPatch 0 (patchSize*2) patchSize cornerType (cornerTurn + 3) cornerInvert foreColor backColor
           ]
-      |> List.map (\f -> f |> move (-patchSize, -patchSize))
+      -- centering vertically fliped forms
+      |> List.map (\f -> f |> move (-patchSize, patchSize))
       |> Graphics.Collage.group
 
 renderGuide : Float -> Float -> Graphics.Collage.Form
@@ -106,3 +110,6 @@ renderGuide width height =
        |> filled lineColor
     ] |> Graphics.Collage.group
 
+flipVertically : Form -> Form
+flipVertically f =
+  { f | y <- -f.y }
