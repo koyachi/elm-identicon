@@ -63,17 +63,20 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
 renderIdenticon : Int -> Int -> C.Form
 renderIdenticon code size =
   let patchSize = (toFloat size) / 3
+      shiftRightAnd shiftBit andBit = (Bitwise.shiftRight code shiftBit) |> (Bitwise.and andBit)
+      isShiftRightAndNotZero shiftBit andBit = ((Bitwise.shiftRight code shiftBit) |> (Bitwise.and andBit)) /= 0
+
       middleType = Maybe.withDefault 0 (centerPatchTypes |> Array.get (Bitwise.and code 3))
-      middleInvert = (Bitwise.and (Bitwise.shiftRight code 2) 1) /= 0
-      cornerType = (Bitwise.and (Bitwise.shiftRight code 3) 15)
-      cornerInvert = (Bitwise.and (Bitwise.shiftRight code 7) 1) /= 0
-      cornerTurn = (Bitwise.and (Bitwise.shiftRight code 8) 3)
-      sideType = (Bitwise.and (Bitwise.shiftRight code 10) 15)
-      sideInvert = (Bitwise.and (Bitwise.shiftRight code 14) 1) /= 0
-      sideTurn = (Bitwise.and (Bitwise.shiftRight code 15) 3)
-      blue = (Bitwise.and (Bitwise.shiftRight code 16) 31)
-      green = (Bitwise.and (Bitwise.shiftRight code 21) 31)
-      red = (Bitwise.and (Bitwise.shiftRight code 27) 31)
+      middleInvert = isShiftRightAndNotZero 2 1
+      cornerType = shiftRightAnd 3 15
+      cornerInvert = isShiftRightAndNotZero 7 1
+      cornerTurn = shiftRightAnd 8 3
+      sideType = shiftRightAnd 10 15
+      sideInvert = isShiftRightAndNotZero 14 1
+      sideTurn = shiftRightAnd 15 3
+      blue = shiftRightAnd 16 31
+      green = shiftRightAnd 21 31
+      red = shiftRightAnd 27 31
       foreColor = Color.rgba (Bitwise.shiftLeft red 3) (Bitwise.shiftLeft green 3) (Bitwise.shiftLeft blue 3) 1.0
       backColor = Color.rgba 0xff 0xff 0xff 1.0
   in
