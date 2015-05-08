@@ -30,17 +30,23 @@ patchTypes = Array.fromList [patch0, patch1, patch2, patch3, patch4, patch5, pat
 centerPatchTypes = Array.fromList [0, 4, 8, 15]
 
 renderIdenticonPatch : Float -> Float -> Float -> Int -> Int -> Bool -> Color.Color -> Color.Color -> List C.Form
-renderIdenticonPatch x y size patch turn invert foreColor backColor =
-  let patch' = patch % (Array.length patchTypes)
+renderIdenticonPatch x y size patchTypeIndex turn invert foreColor backColor =
+  let patchTypeIndex' = patchTypeIndex % (Array.length patchTypes)
       turn' = turn % 4
-      invert' = if patch' == 15 then not invert else invert
+      invert' = if patchTypeIndex' == 15 then not invert else invert
       offset = size / 2
       scale = size / 4
-      patchType = Maybe.withDefault (Array.fromList []) (patchTypes |> Array.get patch')
+      patchType = Maybe.withDefault (Array.fromList []) (patchTypes |> Array.get patchTypeIndex')
+
       flipSign = -1.0
+      adjust v = v * scale - offset
+      patchToXY p =
+        ((round p) % 5 |> toFloat |> adjust,
+         (floor (p / 5) |> toFloat |> adjust) * flipSign)
+
       vertices =
-        (patchType
-           |> Array.map (\p -> (((round p) % 5 |> toFloat) * scale - offset, ((floor (p / 5) |> toFloat) * scale - offset) * flipSign)))
+        patchType
+          |> Array.map patchToXY
           |> Array.toList
 
       bgColor = if invert' then foreColor else backColor
