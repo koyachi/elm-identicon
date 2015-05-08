@@ -40,7 +40,7 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
       flipSign = -1.0
       vertices =
         (patchType
-           |> Array.map (\p -> (toFloat((round p) % 5) * scale - offset, (toFloat (floor (p / 5)) * scale - offset) * flipSign)))
+           |> Array.map (\p -> (((round p) % 5 |> toFloat) * scale - offset, ((floor (p / 5) |> toFloat) * scale - offset) * flipSign)))
           |> Array.toList
 
       bgColor = if invert' then foreColor else backColor
@@ -55,14 +55,14 @@ renderIdenticonPatch x y size patch turn invert foreColor backColor =
      -- build patch path
      C.polygon vertices
        |> C.filled fgColor
-       |> C.rotate (toFloat turn' * pi / 2 * flipSign)
+       |> C.rotate ((turn' |> toFloat) * pi / 2 * flipSign)
        |> C.move (x, y)
        |> flipVertically
     ]
 
 renderIdenticon : Int -> Int -> C.Form
 renderIdenticon code size =
-  let patchSize = (toFloat size) / 3
+  let patchSize = (size |> toFloat) / 3
       shiftRightAnd shiftBit andBit = (Bitwise.shiftRight code shiftBit) |> (Bitwise.and andBit)
       isShiftRightAndNotZero shiftBit andBit = ((Bitwise.shiftRight code shiftBit) |> (Bitwise.and andBit)) /= 0
 
