@@ -9,23 +9,28 @@ import Array
 import Maybe
 import Bitwise
 
-patch0 = Array.fromList [0, 4, 24, 20]
-patch1 = Array.fromList [0, 4, 20]
-patch2 = Array.fromList [2, 24, 20]
-patch3 = Array.fromList [0, 2,  20, 22]
-patch4 = Array.fromList [2, 14, 22, 10]
-patch5 = Array.fromList [0, 14, 24, 22]
-patch6 = Array.fromList [2, 24, 22, 13, 11, 22, 20]
-patch7 = Array.fromList [0, 14, 22]
-patch8 = Array.fromList [6, 8, 18, 16]
-patch9 = Array.fromList [4, 20, 10, 12, 2]
-patch10 = Array.fromList [0, 2, 12, 10]
-patch11 = Array.fromList [10, 14, 22]
-patch12 = Array.fromList [20, 12, 24]
-patch13 = Array.fromList [10, 2, 12]
-patch14 = Array.fromList [0, 2, 10]
-
-patchTypes = Array.fromList [patch0, patch1, patch2, patch3, patch4, patch5, patch6, patch7, patch8, patch9, patch10, patch11, patch12, patch13, patch14, patch0]
+patch0 = [0, 4, 24, 20]
+patchTypes =
+  [
+   patch0,
+   [0, 4, 20],
+   [2, 24, 20],
+   [0, 2,  20, 22],
+   [2, 14, 22, 10],
+   [0, 14, 24, 22],
+   [2, 24, 22, 13, 11, 22, 20],
+   [0, 14, 22],
+   [6, 8, 18, 16],
+   [4, 20, 10, 12, 2],
+   [0, 2, 12, 10],
+   [10, 14, 22],
+   [20, 12, 24],
+   [10, 2, 12],
+   [0, 2, 10],
+   patch0
+  ]
+            |> List.map (\p -> Array.fromList p)
+            |> Array.fromList
 
 centerPatchTypes = Array.fromList [0, 4, 8, 15]
 
